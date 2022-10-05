@@ -51,7 +51,8 @@ The following Python code represents our load testing Python example:
 
 The load test will execute `1000` requests from `10` locust workers (each worker will execute `100` requests).
 
-1. Edit [docker-compose.yml](./docker-compose.yml):
+1. Run [REST API server mock](https://github.com/eccanto/base-mockoon-api-rest-server-mock) (address: http://localhost:3000).
+2. Edit [docker-compose.yml](./docker-compose.yml):
     ```yaml
     version: '3.9'
 
@@ -64,7 +65,8 @@ The load test will execute `1000` requests from `10` locust workers (each worker
         - "8089:8089"
         volumes:
         - ./:/mnt/locust
-        # Here! Change LOCAL_IP, and "-i" indicates the number of iterations by user.
+        # CHANGE!: Change <LOCAL_IP>, this IP must be accessible from within a locust containers.
+        # NOTE!: The flag "-i" indicates the number of iterations by user.
         command: -f /mnt/locust/locustfile.py --master -H "http://<LOCAL_IP>:3000" -i 100
 
     worker:
@@ -76,11 +78,16 @@ The load test will execute `1000` requests from `10` locust workers (each worker
         command: -f /mnt/locust/locustfile.py --worker --master-host master
 
     ```
-2. Run locust docker containers:
+3. Run locust docker containers:
     ```bash
     docker-compose up --scale worker=10
     ```
-3. Go to http://localhost:8089/
+4. Go to http://localhost:8089/
+    ![Locust Dashboard](documentation/images/locust_dashboard.png)
+
+    **Note**: Total number of requests: "`Number of users` x `iterations`" = "`10` x `100` = `1000`"
+5. Click on the "Start swarming" button.
+    ![Locust Run](documentation/videos/1000_requests.gif)
 
 # Static code analysis tools
 
