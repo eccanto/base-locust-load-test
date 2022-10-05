@@ -6,6 +6,8 @@
 
 * [Overview](#overview)
 * [Get started](#get-started)
+  * [Objetive](#objetive)
+  * [Locustfile](#locustfile)
   * [Requirements](#requirements)
   * [Run](#run)
 * [Static code analysis tools](#static-code-analysis-tools)
