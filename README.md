@@ -78,7 +78,7 @@ The load test will execute `1000` requests from `10` locust workers (each worker
         command: -f /mnt/locust/locustfile.py --worker --master-host master
 
     ```
-3. Run locust docker containers:
+3. Run locust docker containers (with `10` workers):
     ```bash
     docker-compose up --scale worker=10
     ```

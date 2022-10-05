@@ -9,7 +9,7 @@ services:
      - "8089:8089"
     volumes:
       - ./:/mnt/locust
-    command: -f /mnt/locust/locustfile.py --master -H "http://192.168.0.5:3000" -i 100
+    command: -f /mnt/locust/locustfile.py --master -H "http://<LOCAL_IP>:3000" -i <ITERATIONS_BY_USER>
 
   worker:
     image: locustio/locust:2.12.1
