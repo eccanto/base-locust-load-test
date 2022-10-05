@@ -1,0 +1,7 @@
+pylint==2.15.3
+prospector==1.7.7
+isort==5.10.1
+bandit==1.7.4
+mypy==0.971
+pyroma==4.0
+brunette==0.2.7
