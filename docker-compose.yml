@@ -1,20 +1,36 @@
 version: '3.9'
 
 services:
-  master:
-    image: locustio/locust:2.12.1
-    env_file:
-      - mock_variables.env
-    ports:
-     - "8089:8089"
-    volumes:
-      - ./:/mnt/locust
-    command: -f /mnt/locust/locustfile.py --master -H "http://<LOCAL_IP>:3000" -i <ITERATIONS_BY_USER>
+    mockoon:
+        build: ./services/mockoon
+        profiles:
+            - env
+        ports:
+            - '3000:3000'
+        healthcheck:
+            test: curl -u 'test:test' localhost:3000/api/token
+            interval: 10s
+            retries: 60
+            start_period: 30s
 
-  worker:
-    image: locustio/locust:2.12.1
-    env_file:
-      - mock_variables.env
-    volumes:
-      - ./:/mnt/locust
-    command: -f /mnt/locust/locustfile.py --worker --master-host master
+    master:
+        image: locustio/locust:2.20.1
+        profiles:
+            - test
+        env_file:
+            - .env
+        ports:
+            - "8089:8089"
+        volumes:
+            - ./:/mnt/locust
+        command: -f "/mnt/locust/${LOCUST_FILE}" --master -H "${API_ADDRESS}"
+
+    worker:
+        image: locustio/locust:2.20.1
+        profiles:
+            - test
+        env_file:
+            - .env
+        volumes:
+            - ./:/mnt/locust
+        command: -f "/mnt/locust/${LOCUST_FILE}" --worker --master-host master

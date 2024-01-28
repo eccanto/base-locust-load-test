@@ -1,130 +1,137 @@
-[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
+# Performance testing using Locust with Python
 
-# Load testing using Locust
+![](https://img.shields.io/badge/-Linux-grey?logo=linux)
+![](https://img.shields.io/badge/license-MIT-green)
+![](https://img.shields.io/github/stars/eccanto)
+
+This project is an example of the different types of performance tests that are described in
+[Performance testing summary](https://github.com/eccanto/base-performance-testing-documentation) using Locust and
+Docker compose.
 
 # Table of contents
 
-* [Overview](#overview)
 * [Get started](#get-started)
-  * [Objetive](#objetive)
-  * [Locustfile](#locustfile)
   * [Requirements](#requirements)
-  * [Run](#run)
-* [Static code analysis tools](#static-code-analysis-tools)
-  * [Set up the Git hooks custom directory](#set-up-the-git-hooks-custom-directory)
-  * [Python Static Checkers](#python-static-checkers)
-  * [Shell Static Checkers](#shell-static-checkers)
+  * [Configuration](#configuration)
+  * [Run performance testing](#run-performance-testing)
+    * [Implementation of "Case 1: Load testing"](#implementation-of-case-1-load-testing)
+    * [Implementation of "case 2: Stress testing"](#implementation-of-case-2-stress-testing)
+    * [Implementation of "Case 3: Soak testing"](#implementation-of-case-3-soak-testing)
+    * [Implementation of "Case 4: Spike testing"](#implementation-of-case-4-spike-testing)
+  * [Clean environment](#crean-environment)
 * [License](#license)
-
-# Overview
-
-[Locust](https://github.com/locustio/locust) is a Python testing tool used for load testing and user behavior simulation. Load testing is the practice of testing a software application with the primary purpose of stressing the application's capabilities.
-
-For load testing Locust presents test results in a web dashboard. One of the significant features of Locust is its [well-documented code source](https://docs.locust.io/en/stable/).
 
 # Get Started
 
-In this example, you will run a login and obtain users information using [JSON Web Token](https://www.rfc-editor.org/rfc/rfc7519) Authentication. The tested application will be a REST API server mock defined in this repository: [base-mockoon-api-rest-server-mock](https://raw.githubusercontent.com/eccanto/base-mockoon-api-rest-server-mock).
-
-## Objetive
-
-The system will be tested with a load of `1000` requests from `10` locust **workers**: to scale up, Locust offers a set of processes called nodes that can be used to run a set of tasks. These nodes are known as workers as they perform specific functions in a given period. In addition, Locust offers the capability to link these nodes or workers to simulate a [distributed load](https://docs.locust.io/en/stable/running-distributed.html) for large-scale load testing operations.
-
-## Locustfile
-
-The number of requests will be controlled from [locustfile.py](./locustfile.py), because locust does not support limit of iterations/requests by default, and its options have unexpected behaviors ([locust-plugins](https://github.com/SvenskaSpel/locust-plugins)).
-
-The following Python code represents our load testing Python example:
-
-![Locust Code](documentation/images/locust_code.png)
-
-- `line 55-56`: Gets server credentials.
-- `line 67`: Gets the value of the custom command line argument "iterations".
-- `line 69`: Log in and gets the JWT from the server.
-- `line 75`: Task to obtain users data from the server (must be executed `1000` times).
-
-
 ## Requirements
 
-- [Docker +20.10](https://docs.docker.com/engine/install/ubuntu/)
-- [docker-compose +1.29](https://docs.docker.com/desktop/install/linux-install/)
+- [Docker +24.0.7](https://docs.docker.com/engine/install/ubuntu/)
+- [Docker compose +2.21.0](https://docs.docker.com/compose/install/linux/)
 
-## Run
+## Configuration
 
-The load test will execute `1000` requests from `10` locust workers (each worker will execute `100` requests).
+Setup environment (start `mockoon` server) using docker compose:
 
-1. Run [REST API server mock](https://github.com/eccanto/base-mockoon-api-rest-server-mock) (address: http://localhost:3000).
-2. Edit [docker-compose.yml](./docker-compose.yml):
-    ```yaml
-    version: '3.9'
+```bash
+docker compose --profile env up --detach
+```
 
-    services:
-    master:
-        image: locustio/locust:2.12.1
-        env_file:
-        - mock_variables.env
-        ports:
-        - "8089:8089"
-        volumes:
-        - ./:/mnt/locust
-        # CHANGE!: Change <LOCAL_IP>, this IP must be accessible from within a locust containers.
-        # NOTE!: The flag "-i" indicates the number of iterations by user.
-        command: -f /mnt/locust/locustfile.py --master -H "http://<LOCAL_IP>:3000" -i 100
+## Run performance testing
 
-    worker:
-        image: locustio/locust:2.12.1
-        env_file:
-        - mock_variables.env
-        volumes:
-        - ./:/mnt/locust
-        command: -f /mnt/locust/locustfile.py --worker --master-host master
+The following sections describe how to set up the execution environment, but do not start the test, for this you must
+go to http://localhost:8089/, wait until all `10 workers` are connected and click on "**Start swarming**" button.
 
-    ```
-3. Run locust docker containers (with `10` workers):
-    ```bash
-    docker-compose up --scale worker=10
-    ```
-4. Go to http://localhost:8089/
-    ![Locust Dashboard](documentation/images/locust_dashboard.png)
+![Start swarming](./docs/videos/start_swarming.gif)
 
-    **Note**: Total number of requests: "`Number of users` x `iterations`" = "`10` x `100` = `1000`"
-5. Click on the "Start swarming" button.
-    ![Locust Run](documentation/videos/1000_requests.gif)
+### Implementation of "Case 1: Load testing"
+
+#### Run
+
+Set `LOCUST_FILE=tests/load.py` in `.env` file:
+
+```bash
+sed -i 's/\(LOCUST_FILE=\).\+/\1tests\/load.py/' .env
+```
+
+Run load testing with `10` runners:
+
+```bash
+docker compose --profile test up --scale worker=10
+```
+
+#### Result
+
+![Load testing result](./docs/images/locust-report-load-testing.png)
+
+### Implementation of "Case 2: Stress testing"
+
+#### Run
+
+Set `LOCUST_FILE=tests/stress.py` in `.env` file:
+
+```bash
+sed -i 's/\(LOCUST_FILE=\).\+/\1tests\/stress.py/' .env
+```
+
+Run stress testing with `10` runners:
+
+```bash
+docker compose --profile test up --scale worker=10
+```
+
+#### Result
+
+![Stress testing result](./docs/images/locust-report-stress-testing.png)
+
+### Implementation of "Case 3: Soak testing"
+
+#### Run
+
+Set `LOCUST_FILE=tests/soak.py` in `.env` file:
+
+```bash
+sed -i 's/\(LOCUST_FILE=\).\+/\1tests\/soak.py/' .env
+```
+
+Run soak testing with `10` runners:
+
+```bash
+docker compose --profile test up --scale worker=10
+```
+
+#### Result
+
+![Soak testing result](./docs/images/locust-report-soak-testing.png)
+
+### Implementation of "Case 4: Spike testing"
+
+#### Run
+
+Set `LOCUST_FILE=tests/spike.py` in `.env` file:
+
+```bash
+sed -i 's/\(LOCUST_FILE=\).\+/\1tests\/spike.py/' .env
+```
+
+Run spike testing with `10` runners:
+
+```bash
+docker compose --profile test up --scale worker=10
+```
+
+#### Result
+
+![Spike testing result](./docs/images/locust-report-spike-testing.png)
+
+## Clean environment
+
+```bash
+docker compose --profile env --profile test down
+```
 
 # Static code analysis tools
 
-These are the linters that will help us to follow good practices and style guides of our source code. We will be using the following static analysis tools, which will be executed when generating a new push in the repository (git hooks).
-
-## Set up the Git hooks custom directory
-
-After cloning the repository run the following command in the repository root:
-
-```bash
-git config core.hooksPath .githooks
-```
-
-## Python Static Checkers
-
-Tools used:
-- [brunette](https://github.com/odwyersoftware/brunette): A best practice Python code formatter.
-- [isort](https://pycqa.github.io/isort/): Python utility / library to sort imports alphabetically, and automatically separated into sections and by type.
-- [prospector](https://github.com/PyCQA/prospector): Prospector is a tool to analyse Python code and output information about errors, potential problems, convention violations and complexity.
-
-  Tools executed by Prospector:
-  - [pylint](https://github.com/PyCQA/pylint): Pylint is a Python static code analysis tool which looks for programming errors,   helps enforcing a coding standard, sniffs for code smells and offers simple refactoring suggestions.
-  - [bandit](https://github.com/PyCQA/bandit): Bandit is a tool designed to find common security issues.
-  - [dodgy](https://github.com/landscapeio/dodgy): It is a series of simple regular expressions designed to detect things such as accidental SCM diff checkins, or passwords or secret keys hard coded into files.
-  - [mccabe](https://github.com/PyCQA/mccabe): Complexity checker.
-  - [mypy](https://github.com/python/mypy): Mypy is an optional static type checker for Python.
-  - [pydocstyle](https://github.com/PyCQA/pydocstyle): pydocstyle is a static analysis tool for checking compliance with Python [PEP 257](https://peps.python.org/pep-0257/).
-  - [pycodestyle](https://pycodestyle.pycqa.org/en/latest/): pycodestyle is a tool to check your Python code against some of the style conventions in [PEP 8](https://peps.python.org/pep-0008/).
-  - [pyflakes](https://github.com/PyCQA/pyflakes): Pyflakes analyzes programs and detects various errors.
-  - [pyroma](https://github.com/regebro/pyroma): Pyroma is a product aimed at giving a rating of how well a Python project complies with the best practices of the Python packaging ecosystem, primarily PyPI, pip, Distribute etc, as well as a list of issues that could be improved.
-
-## Shell Static Checkers
-
-Tools used:
-- [shellcheck](https://www.shellcheck.net/): Finds bugs in your shell scripts (bash).
+TODO
 
 # License
 
