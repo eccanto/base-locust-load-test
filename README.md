@@ -20,6 +20,7 @@ Docker compose.
     * [Implementation of "Case 4: Spike testing"](#implementation-of-case-4-spike-testing)
   * [Clean environment](#crean-environment)
 * [Developers](#developers)
+  * [Requirements](#requirements-1)
   * [Set up the Git Hooks custom directory](#set-up-the-git-hooks-custom-directory)
   * [Static code analysis tools](#static-code-analysis-tools)
     * [Python static code analysis tools](#python-static-code-analysis-tools)
@@ -137,6 +138,20 @@ docker compose --profile env --profile test down
 # Developers
 
 This project use [poetry](https://github.com/python-poetry/poetry) to run the static code analysis tools.
+
+## Requirements
+
+1. Install `poetry`:
+
+  ```bash
+  curl -sSL https://install.python-poetry.org | python3 -
+  ```
+
+2. Install python requirements:
+
+  ```bash
+  poetry install --no-root
+  ```
 
 ## Set up the Git Hooks custom directory
 
