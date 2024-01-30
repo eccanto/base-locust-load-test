@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "base-performance-testing-locust"
+version = "0.1.0"
+description = "Basic performance testing using Locust"
+authors = ["Erik Ccanto <ccanto.erik@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+[tool.poetry.group.dev.dependencies]
+prospector = "==1.10.3"
+mypy = "==1.8.0"
+pyroma = "==4.2"
+ruff = "==0.1.15"
+locust = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

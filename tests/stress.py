@@ -1,36 +1,10 @@
 """This module defines a stress testing example."""
 
-import os
+from typing import ClassVar
 
-from locust import HttpUser, TaskSet, between, task
+from locust import HttpUser, between
 
-from base import StagesShape
-
-
-class UserTasks(TaskSet):
-    """TaskSet for simulating user interactions with API endpoints.
-
-    Attributes:
-        _API_USERNAME (str): The API username obtained from the environment variable 'API_USERNAME'.
-        _API_PASSWORD (str): The API password obtained from the environment variable 'API_PASSWORD'.
-    """
-
-    _API_USERNAME = os.environ['API_USERNAME']
-    _API_PASSWORD = os.environ['API_PASSWORD']
-
-    @task
-    def get_users(self):
-        """Sends a GET request to the endpoint "/api/users".
-
-        Raises:
-            ValueError: If failed to obtain the JWT token.
-        """
-        response = self.client.get('/api/token', auth=(self._API_USERNAME, self._API_PASSWORD))
-        if response.ok:
-            jwt_token = response.json()['access']
-            self.client.get('/api/users', headers={'Authorization': f'JWT {jwt_token}'})
-        else:
-            raise ValueError('Failed to obtain JWT token.')
+from base import StagesShape, UserTasks
 
 
 class WebsiteUser(HttpUser):
@@ -41,7 +15,7 @@ class WebsiteUser(HttpUser):
         tasks: List of TaskSets to be executed by the user.
     """
     wait_time = between(0, 1)
-    tasks = [UserTasks]
+    tasks: ClassVar = [UserTasks]
 
 
 class StressTest(StagesShape):
@@ -50,6 +24,6 @@ class StressTest(StagesShape):
     Attributes:
         stages: List of dictionaries specifying the duration and number of users for each stage.
     """
-    stages = [
+    stages: ClassVar = [
         {'duration': 300, 'users': 3600},
     ]
